@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
-const BASE_URL = 'https://frameos.app';
+const BASE_URL = 'https://frame-os.vercel.app';
 
 const inter = Inter({
   subsets: ['latin'],
