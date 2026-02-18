@@ -1,0 +1,6 @@
+# Exclude files from Vercel deployment bundle
+.git
+.next
+node_modules
+*.log
+.env*.local

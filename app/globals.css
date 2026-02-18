@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Inter from Google Fonts via next/font would be preferred in layout.tsx;
+   this fallback ensures the font stack is applied everywhere. */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-neutral-100 text-neutral-900 font-sans;
+  }
+
+  /* Site-level dark mode – activated when .dark is on the root wrapper */
+  .dark body {
+    @apply bg-neutral-950 text-neutral-100;
+  }
+}
+
+/* Slider thumb styling – Tailwind doesn't cover range inputs out of the box */
+@layer components {
+  .range-input {
+    @apply w-full h-1.5 rounded-full appearance-none cursor-pointer bg-neutral-200;
+    /* Track fill via accent-color */
+    accent-color: #7c3aed;
+  }
+
+  .range-input::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 rounded-full bg-violet-600 border-2 border-white shadow;
+  }
+
+  .range-input::-moz-range-thumb {
+    @apply w-4 h-4 rounded-full bg-violet-600 border-2 border-white shadow;
+    border: 2px solid white;
+  }
+}
