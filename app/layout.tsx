@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
   },
 
-  // Open Graph — image auto-served as PNG by app/opengraph-image.tsx
+  // Open Graph — static PNG at /public/og-image.png (1200×630)
   openGraph: {
     type:        'website',
     url:         BASE_URL,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
       'Wrap any screenshot in a beautiful frame and export it at exact App Store or Google Play dimensions. Free, runs in your browser.',
     images: [
       {
-        url:    `${BASE_URL}/opengraph-image`,
+        url:    `${BASE_URL}/og-image.png`,
         width:   1200,
         height:  630,
         alt:    'FrameOS – Screenshot Framing Engine',
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     card:        'summary_large_image',
     title:       'FrameOS – Screenshot Framing Engine',
     description: 'Wrap screenshots in macOS, phone, or tablet frames and export at exact store dimensions.',
-    images:      [`${BASE_URL}/opengraph-image`],
+    images:      [`${BASE_URL}/og-image.png`],
   },
 
   icons: {
