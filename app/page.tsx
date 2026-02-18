@@ -48,14 +48,16 @@ const DEFAULT_CONFIG: FrameConfig = {
 };
 
 export default function Page() {
-  const [siteTheme,    setSiteTheme]    = useState<'light' | 'dark'>('dark');
-  const [imageUrls,    setImageUrls]    = useState<string[]>([]);
-  const [activeIndex,  setActiveIndex]  = useState(0);
-  const [config,       setConfig]       = useState<FrameConfig>(DEFAULT_CONFIG);
-  const [undoStack,    setUndoStack]    = useState<FrameConfig[]>([]);
-  const [exporting,    setExporting]    = useState(false);
-  const [exportingAll, setExportingAll] = useState(false);
-  const [copying,      setCopying]      = useState(false);
+  const [siteTheme,      setSiteTheme]      = useState<'light' | 'dark'>('dark');
+  const [imageUrls,      setImageUrls]      = useState<string[]>([]);
+  const [activeIndex,    setActiveIndex]    = useState(0);
+  const [config,         setConfig]         = useState<FrameConfig>(DEFAULT_CONFIG);
+  const [undoStack,      setUndoStack]      = useState<FrameConfig[]>([]);
+  const [exporting,      setExporting]      = useState(false);
+  const [exportingAll,   setExportingAll]   = useState(false);
+  const [copying,        setCopying]        = useState(false);
+  // Mobile: controls panel open/closed (accordion-style below the preview)
+  const [controlsOpen,   setControlsOpen]   = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -197,22 +199,32 @@ export default function Page() {
   const isBusy         = exporting || exportingAll || copying;
 
   return (
+    // `dark` class on root enables dark: variants everywhere below
     <div className={siteTheme === 'dark' ? 'dark' : ''}>
-      <div className="h-screen flex flex-col bg-neutral-100 dark:bg-neutral-950 transition-colors duration-200 overflow-hidden">
+      {/*
+       * Outer shell:
+       * – Mobile/tablet (<lg): full viewport height, flex-col, allows natural
+       *   stacking of header → canvas → controls drawer.
+       * – Desktop (lg+): overflow-hidden locks to exactly one screen, no scroll.
+       * `overflow-x-hidden` prevents any accidental horizontal bleed on mobile.
+       */}
+      <div className="h-screen flex flex-col bg-neutral-100 dark:bg-neutral-950 transition-colors duration-200 overflow-x-hidden lg:overflow-hidden">
 
-        {/* Top bar */}
-        <header className="h-14 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center px-6 shrink-0">
+        {/* ── Top bar ────────────────────────────────────────────────────────── */}
+        <header className="h-14 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center px-4 sm:px-6 shrink-0 z-20">
           <FrameOSLogo />
+          {/* Tagline hidden on small screens to save horizontal space */}
           <span className="ml-2 text-xs text-neutral-400 font-medium uppercase tracking-widest hidden sm:block">
             Screenshot Framing Engine
           </span>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Dark/light toggle – min 44px tap target via w-11 h-11 on mobile */}
             <button
               type="button"
               onClick={() => setSiteTheme(isDark ? 'light' : 'dark')}
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
+              className="w-11 h-11 lg:w-9 lg:h-9 rounded-lg flex items-center justify-center transition-colors bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
             >
               {isDark ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -227,30 +239,93 @@ export default function Page() {
                 </svg>
               )}
             </button>
+
+            {/*
+             * Mobile-only controls toggle button (hidden lg+, where the aside
+             * is always visible in the two-column layout).
+             */}
+            <button
+              type="button"
+              onClick={() => setControlsOpen((v) => !v)}
+              aria-label={controlsOpen ? 'Hide controls' : 'Show controls'}
+              aria-expanded={controlsOpen}
+              className="lg:hidden w-11 h-11 rounded-lg flex items-center justify-center transition-colors bg-violet-600 text-white hover:bg-violet-700 active:scale-95"
+            >
+              {controlsOpen ? (
+                // X icon when open
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              ) : (
+                // Sliders icon when closed
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                  <circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/>
+                  <circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/>
+                  <circle cx="10" cy="18" r="2" fill="currentColor" stroke="none"/>
+                </svg>
+              )}
+            </button>
           </div>
         </header>
 
-        {/* Main layout */}
-        <main className="flex flex-1 flex-col lg:flex-row overflow-hidden min-h-0">
+        {/*
+         * ── Main layout ──────────────────────────────────────────────────────
+         * Desktop (lg+):  side-by-side, overflow-hidden – fits exactly in viewport.
+         * Tablet/Mobile:  stacked column. Canvas fills available space; controls
+         *                 panel is conditionally rendered below as an accordion.
+         */}
+        <main className="flex flex-1 flex-col lg:flex-row overflow-hidden lg:overflow-hidden min-h-0">
 
-          {/* Canvas */}
-          <section className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden bg-neutral-100 dark:bg-neutral-950 gap-3 min-h-0 min-w-0">
+          {/*
+           * ── Canvas section ───────────────────────────────────────────────
+           * `flex-1 min-h-0` lets it shrink/grow within the flex column.
+           * On mobile: fixed reasonable height so it doesn't consume the full
+           * viewport when controls are open. On desktop: fills remaining width.
+           */}
+          <section
+            className={[
+              'flex flex-col items-center justify-center gap-3 bg-neutral-100 dark:bg-neutral-950',
+              // Mobile: when controls are open, give canvas a fixed portion;
+              // when controls are closed, let it fill available space.
+              controlsOpen
+                ? 'p-3 overflow-hidden'
+                : 'flex-1 p-3 sm:p-4 overflow-hidden',
+              // Desktop: always flex-1, never shrinks out
+              'lg:flex-1 lg:p-4 min-h-0 min-w-0',
+            ].join(' ')}
+            // Fixed height on mobile when controls drawer is open so preview
+            // stays visible and doesn't get pushed completely off screen.
+            style={controlsOpen ? { height: '45dvh', flexShrink: 0 } : undefined}
+          >
             {activeImageUrl ? (
               <>
-                {/* Constrain preview to remaining height so it never causes a scroll */}
+                {/* Preview wrapper – constrains to available height, never overflows */}
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 min-w-0 overflow-hidden">
                   <FramePreview ref={previewRef} imageUrl={activeImageUrl} config={config} />
                 </div>
 
-                {/* Thumbnail strip -- replaces dot indicators when batch > 1 */}
+                {/* Thumbnail strip — hidden when controls are open on mobile to save space */}
                 {imageUrls.length > 1 && (
-                  <div className="flex shrink-0 items-center gap-3 max-w-[860px] w-full">
+                  <div className={[
+                    'flex shrink-0 items-center gap-2 sm:gap-3 w-full',
+                    // Cap width to match max preview width
+                    'max-w-[860px]',
+                    // Hide strip on mobile when controls drawer is open
+                    controlsOpen ? 'hidden sm:flex' : 'flex',
+                  ].join(' ')}>
+                    {/* Prev arrow */}
                     <button
                       type="button"
                       onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
                       disabled={activeIndex === 0}
                       aria-label="Previous image"
-                      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 disabled:opacity-30 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                      // min 44px tap target on mobile
+                      className="shrink-0 w-11 h-11 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 disabled:opacity-30 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -258,15 +333,17 @@ export default function Page() {
                       </svg>
                     </button>
 
-                    <div className="flex-1 flex gap-2 overflow-x-auto pb-1 min-w-0">
+                    {/* Scrollable thumbnail row */}
+                    <div className="flex-1 flex gap-2 overflow-x-auto pb-1 min-w-0 scrollbar-hide">
                       {imageUrls.map((url, i) => (
                         <button
                           key={i}
                           type="button"
                           onClick={() => setActiveIndex(i)}
                           aria-label={`View image ${i + 1}`}
+                          // Slightly larger thumbnails on mobile for easier tapping
                           className={[
-                            'shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all',
+                            'shrink-0 w-14 h-10 sm:w-16 sm:h-12 rounded-lg overflow-hidden border-2 transition-all',
                             i === activeIndex
                               ? 'border-violet-500 scale-105 shadow-md'
                               : 'border-transparent opacity-50 hover:opacity-100',
@@ -277,12 +354,13 @@ export default function Page() {
                       ))}
                     </div>
 
+                    {/* Next arrow */}
                     <button
                       type="button"
                       onClick={() => setActiveIndex((i) => Math.min(imageUrls.length - 1, i + 1))}
                       disabled={activeIndex === imageUrls.length - 1}
                       aria-label="Next image"
-                      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 disabled:opacity-30 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                      className="shrink-0 w-11 h-11 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 disabled:opacity-30 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -301,8 +379,28 @@ export default function Page() {
             )}
           </section>
 
-          {/* Controls panel */}
-          <aside className="w-full lg:w-80 xl:w-88 border-t lg:border-t-0 lg:border-l border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0 overflow-y-auto min-h-0">
+          {/*
+           * ── Controls aside ───────────────────────────────────────────────
+           * Desktop (lg+): fixed-width column (w-80 / w-96), always visible,
+           *                scrollable internally.
+           * Mobile/Tablet: full-width, slides in below the canvas when
+           *                `controlsOpen` is true. Rendered in DOM regardless
+           *                to avoid remounting and losing scroll position.
+           */}
+          <aside
+            className={[
+              // Base: full width, white/dark bg, left border on desktop
+              'w-full lg:w-80 xl:w-96 bg-white dark:bg-neutral-900',
+              'border-neutral-200 dark:border-neutral-800',
+              // Desktop: always show, internal scroll, fixed height
+              'lg:border-l lg:flex lg:flex-col lg:min-h-0 lg:overflow-y-auto lg:shrink-0',
+              // Mobile: accordion – visible only when controlsOpen, overflow-y scroll
+              // flex-1 so it can fill remaining space below the canvas
+              controlsOpen
+                ? 'flex flex-col flex-1 overflow-y-auto border-t'
+                : 'hidden lg:flex lg:flex-col',
+            ].join(' ')}
+          >
             <ControlsPanel
               config={config}
               imageCount={imageUrls.length}

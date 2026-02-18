@@ -11,14 +11,19 @@
 
   html, body {
     height: 100%;
-    overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  /* Only lock scroll on desktop — mobile needs scroll for the controls drawer */
+  body {
+    overflow-x: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    html, body {
+      overflow: hidden;
+    }
   }
 
   body {
@@ -35,7 +40,6 @@
 @layer components {
   .range-input {
     @apply w-full h-1.5 rounded-full appearance-none cursor-pointer bg-neutral-200;
-    /* Track fill via accent-color */
     accent-color: #7c3aed;
   }
 
@@ -46,5 +50,19 @@
   .range-input::-moz-range-thumb {
     @apply w-4 h-4 rounded-full bg-violet-600 border-2 border-white shadow;
     border: 2px solid white;
+  }
+
+  /* Larger thumb on touch / mobile for easier grabbing */
+  @media (max-width: 1023px) {
+    .range-input {
+      @apply h-2;
+    }
+    .range-input::-webkit-slider-thumb {
+      @apply w-5 h-5;
+    }
+    .range-input::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+    }
   }
 }

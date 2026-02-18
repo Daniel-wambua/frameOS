@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/page.tsx -> html-to-image\":{\"id\":\"app/page.tsx -> html-to-image\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_html-to-image_es_index_js.js\"]}}"
