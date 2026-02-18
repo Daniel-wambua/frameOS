@@ -162,7 +162,7 @@ npx vercel --prod
 
 ## 🤝 Contributing
 
-Pull requests are welcome. For large changes, please open an issue first to discuss what you'd like to change.
+Pull requests are welcome.
 
 ```bash
 # Run type-check before committing
