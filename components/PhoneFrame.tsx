@@ -3,18 +3,17 @@
 /**
  * components/PhoneFrame.tsx
  *
- * Generic flagship Android phone frame — looks unmistakably like a phone.
+ * iPhone 16 Pro style frame.
  *
- * Design decisions:
- *   – Thick aluminium side body (18px sides) so the device silhouette registers
- *   – Visible top chin (52px) housing status bar + punch-hole camera
- *   – Visible bottom chin (48px) with gesture pill
- *   – Physical volume buttons (left) + power button (right) as raised DOM elements
- *   – Outer bevel / rail effect via box-shadow
- *   – Corner radius defaults to 52px to match modern flagship curve
- *
- * Light theme: platinum/silver aluminium
- * Dark theme:  Phantom Black
+ * Details matched to the reference:
+ *  – Flat titanium sides (Natural Titanium light / Black Titanium dark)
+ *  – Dynamic Island: rounded pill at top-centre of screen
+ *  – Left side: Action button (top-left) + Volume Up + Volume Down
+ *  – Right side: Power / Side button (tall, centred)
+ *  – Bottom chin: USB-C port + flanking speaker grille dots
+ *  – Corner radius ~58px (iPhone Pro curve)
+ *  – Moderate bezels: 12px sides, 14px top, 20px bottom
+ *  – Status bar: time left · Dynamic Island space · icons right
  */
 
 interface PhoneFrameProps {
@@ -26,138 +25,147 @@ interface PhoneFrameProps {
 export default function PhoneFrame({ imageUrl, theme, borderRadius }: PhoneFrameProps) {
   const isDark = theme === 'dark';
 
-  const bodyColor    = isDark ? '#0e0e0e' : '#c2c5cb';
-  const railColor    = isDark ? '#2c2c30' : '#e2e4e8';
-  const btnColor     = isDark ? '#1e1e22' : '#b0b3ba';
-  const screenBg     = isDark ? '#000000' : '#ffffff';
-  const statusText   = isDark ? 'rgba(255,255,255,0.90)' : 'rgba(0,0,0,0.85)';
-  const indicatorBg  = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.18)';
-  const chinBg       = isDark ? '#0b0b0b' : '#bbbfc6';
+  // Titanium palette
+  const titaniumBody  = isDark ? '#2b2b2d' : '#a9aaac';   // Black / Natural titanium
+  const titaniumRail  = isDark ? '#3e3e42' : '#c8c9cb';   // slightly lighter rail
+  const titaniumBtn   = isDark ? '#222224' : '#9a9b9d';   // buttons slightly darker
+  const screenBg      = isDark ? '#000000' : '#f8f8f8';
+  const statusText    = isDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.86)';
+  const indicatorBg   = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.20)';
+  const diColor       = isDark ? '#0a0a0a' : '#0d0d0d';   // Dynamic Island pill
 
-  const outerRadius  = Math.max(borderRadius, 52);
-  const screenRadius = Math.max(outerRadius - 10, 44);
+  const outerRadius   = Math.max(borderRadius, 58);
+  const screenRadius  = Math.max(outerRadius - 8, 52);
 
-  // Body bezels — thick enough to look like a real phone shell
-  const BEZEL_SIDE = 18;
-  const BEZEL_TOP  = 52;
-  const BEZEL_BOT  = 48;
-
-  // Physical button sizes
-  const VOL_W  = 4;
-  const VOL_H  = 36;
-  const PWR_W  = 4;
-  const PWR_H  = 56;
+  // iPhone-style bezels — thin sides, moderate top/bottom chin
+  const BEZEL_SIDE = 12;
+  const BEZEL_TOP  = 14;
+  const BEZEL_BOT  = 20;
 
   const outerStyle: React.CSSProperties = {
     position: 'relative',
     borderRadius: `${outerRadius}px`,
-    background: bodyColor,
+    background: titaniumBody,
     paddingLeft:   BEZEL_SIDE,
     paddingRight:  BEZEL_SIDE,
     paddingTop:    BEZEL_TOP,
     paddingBottom: BEZEL_BOT,
+    // Flat-side titanium look: subtle inset rail + strong drop shadow
     boxShadow: isDark
       ? [
-          `inset 0 0 0 1.5px ${railColor}`,
-          `inset 0 1px 0 rgba(255,255,255,0.06)`,
-          `0 0 0 1px rgba(0,0,0,0.7)`,
-          `0 8px 16px -4px rgba(0,0,0,0.7)`,
-          `0 40px 80px -16px rgba(0,0,0,0.95)`,
+          `inset 0 0 0 1px ${titaniumRail}`,
+          `inset 0 1px 0 rgba(255,255,255,0.07)`,
+          `0 0 0 1px rgba(0,0,0,0.75)`,
+          `0 8px 20px -4px rgba(0,0,0,0.65)`,
+          `0 40px 80px -12px rgba(0,0,0,0.95)`,
         ].join(', ')
       : [
-          `inset 0 0 0 1.5px ${railColor}`,
-          `inset 0 1px 0 rgba(255,255,255,0.70)`,
-          `0 0 0 1px rgba(0,0,0,0.14)`,
-          `0 8px 16px -4px rgba(0,0,0,0.22)`,
-          `0 40px 80px -16px rgba(0,0,0,0.35)`,
+          `inset 0 0 0 1px ${titaniumRail}`,
+          `inset 0 1px 0 rgba(255,255,255,0.80)`,
+          `0 0 0 1px rgba(0,0,0,0.12)`,
+          `0 8px 20px -4px rgba(0,0,0,0.18)`,
+          `0 40px 80px -12px rgba(0,0,0,0.28)`,
         ].join(', '),
   };
 
-  // ── Volume buttons (left side) ──────────────────────────────────────────
-  const volBtnBase: React.CSSProperties = {
+  // ── Shared button style factory ────────────────────────────────────────
+  const btnStyle = (
+    side: 'left' | 'right',
+    top: string,
+    width: number,
+    height: number,
+    radius: string,
+  ): React.CSSProperties => ({
     position: 'absolute',
-    left: -VOL_W,
-    width: VOL_W,
-    borderRadius: '2px 0 0 2px',
-    background: btnColor,
+    [side]: -width,
+    top,
+    width,
+    height,
+    borderRadius: radius,
+    background: titaniumBtn,
     boxShadow: isDark
-      ? `-1px 0 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)`
-      : `-1px 0 0 rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.5)`,
-  };
-
-  // ── Power button (right side) ───────────────────────────────────────────
-  const pwrBtnStyle: React.CSSProperties = {
-    position: 'absolute',
-    right: -PWR_W,
-    width: PWR_W,
-    height: PWR_H,
-    top: '38%',
-    borderRadius: '0 2px 2px 0',
-    background: btnColor,
-    boxShadow: isDark
-      ? `1px 0 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)`
-      : `1px 0 0 rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.5)`,
-  };
-
-  const screenStyle: React.CSSProperties = {
-    borderRadius: `${screenRadius}px`,
-    overflow: 'hidden',
-    background: screenBg,
-    position: 'relative',
-  };
+      ? side === 'left'
+        ? `-1px 0 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)`
+        : `1px 0 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)`
+      : side === 'left'
+        ? `-1px 0 0 rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.55)`
+        : `1px 0 0 rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.55)`,
+  });
 
   return (
     <div style={outerStyle}>
 
-      {/* ── Volume up ──────────────────────────────────────────────────── */}
-      <div style={{ ...volBtnBase, top: '22%', height: VOL_H }} />
-      {/* ── Volume down ────────────────────────────────────────────────── */}
-      <div style={{ ...volBtnBase, top: '32%', height: VOL_H }} />
-      {/* ── Power / lock ───────────────────────────────────────────────── */}
-      <div style={pwrBtnStyle} />
+      {/* ── Left side: Action button (small, top) ─────────────────────── */}
+      <div style={btnStyle('left', '14%', 4, 28, '2px 0 0 2px')} />
 
-      {/* ── Screen ─────────────────────────────────────────────────────── */}
-      <div style={screenStyle}>
+      {/* ── Left side: Volume Up ──────────────────────────────────────── */}
+      <div style={btnStyle('left', '22%', 4, 44, '2px 0 0 2px')} />
+
+      {/* ── Left side: Volume Down ────────────────────────────────────── */}
+      <div style={btnStyle('left', '33%', 4, 44, '2px 0 0 2px')} />
+
+      {/* ── Right side: Power / Side button ──────────────────────────── */}
+      <div style={btnStyle('right', '28%', 4, 72, '0 2px 2px 0')} />
+
+      {/* ── Screen ────────────────────────────────────────────────────── */}
+      <div style={{
+        borderRadius: `${screenRadius}px`,
+        overflow: 'hidden',
+        background: screenBg,
+        position: 'relative',
+      }}>
 
         {/* Status bar */}
         <div style={{
-          height: 44,
+          height: 50,
           background: screenBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingLeft: 20,
-          paddingRight: 16,
+          paddingLeft: 22,
+          paddingRight: 18,
           position: 'relative',
           userSelect: 'none',
         }}>
-          {/* Time */}
+          {/* Time — left */}
           <span style={{
             fontSize: 13,
             fontWeight: 700,
             color: statusText,
-            letterSpacing: '-0.01em',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-0.02em',
+            fontFamily: '-apple-system, "SF Pro Display", system-ui, sans-serif',
           }}>
             9:41
           </span>
 
-          {/* Punch-hole camera – centred */}
+          {/* Dynamic Island — centred pill ─────────────────────────── */}
           <div style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 13,
-            height: 13,
-            background: isDark ? '#080808' : '#0d0d0d',
-            borderRadius: '50%',
-            boxShadow: isDark
-              ? 'inset 0 0 0 1.5px rgba(255,255,255,0.08), 0 0 0 1.5px rgba(0,0,0,0.9)'
-              : 'inset 0 0 0 1.5px rgba(0,0,0,0.12), 0 0 0 1.5px rgba(0,0,0,0.20)',
-          }} />
+            width: 110,
+            height: 32,
+            background: diColor,
+            borderRadius: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            // subtle inner glow
+            boxShadow: `0 0 0 1.5px rgba(${isDark ? '255,255,255,0.06' : '0,0,0,0.10'})`,
+          }}>
+            {/* Front camera dot */}
+            <div style={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              background: isDark ? '#1a1a1a' : '#111',
+              boxShadow: `inset 0 0 0 2px rgba(${isDark ? '255,255,255,0.10' : '0,0,0,0.20'})`,
+            }} />
+          </div>
 
-          {/* Status icons */}
+          {/* Status icons — right */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {/* Signal */}
             <svg width="15" height="11" viewBox="0 0 15 11" fill="none" aria-hidden="true">
@@ -182,7 +190,7 @@ export default function PhoneFrame({ imageUrl, theme, borderRadius }: PhoneFrame
           </div>
         </div>
 
-        {/* Screenshot content */}
+        {/* Screenshot */}
         <div style={{ lineHeight: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -192,55 +200,52 @@ export default function PhoneFrame({ imageUrl, theme, borderRadius }: PhoneFrame
           />
         </div>
 
-        {/* Navigation / gesture bar */}
+        {/* Home indicator */}
         <div style={{
-          height: 32,
+          height: 34,
           background: screenBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <div style={{ width: 108, height: 4, borderRadius: 3, background: indicatorBg }} />
+          <div style={{ width: 120, height: 5, borderRadius: 3, background: indicatorBg }} />
         </div>
 
       </div>
 
-      {/* ── Top chin label area — speaker grille dots ───────────────── */}
+      {/* ── Bottom chin: USB-C + speaker grilles ─────────────────────── */}
       <div style={{
         position: 'absolute',
-        top: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: BEZEL_BOT,
         display: 'flex',
-        gap: 3,
         alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
       }}>
-        {[0,1,2,3,4,5].map(i => (
-          <div key={i} style={{
-            width: 3,
-            height: 3,
-            borderRadius: '50%',
-            background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.14)',
+        {/* Left speaker dots */}
+        {[0,1,2,3].map(i => (
+          <div key={`ls${i}`} style={{
+            width: 3, height: 3, borderRadius: '50%',
+            background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.15)',
           }} />
         ))}
-      </div>
-
-      {/* ── Bottom chin — USB-C port dots ──────────────────────────── */}
-      <div style={{
-        position: 'absolute',
-        bottom: 16,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: 3,
-        alignItems: 'center',
-      }}>
-        {[0,1,2,3,4,5].map(i => (
-          <div key={i} style={{
-            width: 3,
-            height: 3,
-            borderRadius: '50%',
-            background: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.12)',
+        {/* USB-C port */}
+        <div style={{
+          width: 24, height: 8, borderRadius: 4,
+          background: isDark ? '#060606' : '#888',
+          margin: '0 4px',
+          boxShadow: isDark
+            ? 'inset 0 1px 2px rgba(0,0,0,0.9)'
+            : 'inset 0 1px 2px rgba(0,0,0,0.35)',
+        }} />
+        {/* Right speaker dots */}
+        {[0,1,2,3].map(i => (
+          <div key={`rs${i}`} style={{
+            width: 3, height: 3, borderRadius: '50%',
+            background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.15)',
           }} />
         ))}
       </div>
