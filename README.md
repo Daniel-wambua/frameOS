@@ -17,7 +17,7 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&logoColor=white)](LICENSE)
 
 <!-- Badges row 2 — stack -->
-[![Next.js](https://img.shields.io/badge/Next.js-15.3.1-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19.0.0-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -130,7 +130,7 @@ FrameOS exports at the **exact pixel dimensions** required by the stores when a 
 
 ## 🛠️ Tech Stack
 
-- **[Next.js 15](https://nextjs.org)** — App Router, static export, auto-favicon/sitemap
+- **[Next.js 16](https://nextjs.org)** — App Router, static export, auto-favicon/sitemap
 - **[React 19](https://react.dev)** — `useCallback`, `useRef`, `forwardRef` for the capture target
 - **[TypeScript 5.7](https://typescriptlang.org)** — strict mode throughout
 - **[Tailwind CSS 3.4](https://tailwindcss.com)** — `darkMode: 'class'` strategy
