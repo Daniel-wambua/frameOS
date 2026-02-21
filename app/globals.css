@@ -9,19 +9,24 @@
     box-sizing: border-box;
   }
 
-  html, body {
-    height: 100%;
+  html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Only lock scroll on desktop — mobile needs scroll for the controls drawer */
+  /* Only lock scroll on the editor page — the landing page needs free scroll */
   body {
     overflow-x: hidden;
   }
 
+  /* .editor-page class locks scroll on desktop for the app canvas layout */
+  .editor-page {
+    overflow: hidden;
+  }
+
   @media (min-width: 1024px) {
-    html, body {
+    .editor-page,
+    .editor-page body {
       overflow: hidden;
     }
   }
@@ -34,6 +39,26 @@
   .dark body {
     @apply bg-neutral-950 text-neutral-100;
   }
+}
+
+/* ── Float animation for landing page hero mockframes ── */
+@keyframes float {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-14px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Slider thumb styling – Tailwind doesn't cover range inputs out of the box */
